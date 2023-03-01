@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS `buffer` (
   CONSTRAINT `FK__buffer_Simul_ID` FOREIGN KEY (`Simul_ID`) REFERENCES `simulation` (`Simul_ID`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
--- 테이블 데이터 lghpdb.buffer:~56 rows (대략적) 내보내기
+-- 테이블 데이터 lghpdb.buffer:~36 rows (대략적) 내보내기
 /*!40000 ALTER TABLE `buffer` DISABLE KEYS */;
 /*!40000 ALTER TABLE `buffer` ENABLE KEYS */;
 
@@ -62,14 +62,14 @@ CREATE TABLE IF NOT EXISTS `cell` (
   CONSTRAINT `FK_cell_Simul_ID` FOREIGN KEY (`Simul_ID`) REFERENCES `simulation` (`Simul_ID`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
--- 테이블 데이터 lghpdb.cell:~487 rows (대략적) 내보내기
+-- 테이블 데이터 lghpdb.cell:~195 rows (대략적) 내보내기
 /*!40000 ALTER TABLE `cell` DISABLE KEYS */;
 /*!40000 ALTER TABLE `cell` ENABLE KEYS */;
 
 -- 테이블 lghpdb.chargingstation 구조 내보내기
 CREATE TABLE IF NOT EXISTS `chargingstation` (
   `CS_ID` char(30) NOT NULL DEFAULT '',
-  `Cell_ID` char(30) NOT NULL,
+  `Cell_ID` char(30) DEFAULT NULL,
   `Grid_ID` char(10) DEFAULT NULL,
   `LocationX` int(11) DEFAULT NULL,
   `LocationY` int(11) DEFAULT NULL,
@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS `chargingstation` (
   CONSTRAINT `FK_chargingstation_Simul_ID` FOREIGN KEY (`Simul_ID`) REFERENCES `simulation` (`Simul_ID`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
--- 테이블 데이터 lghpdb.chargingstation:~80 rows (대략적) 내보내기
+-- 테이블 데이터 lghpdb.chargingstation:~12 rows (대략적) 내보내기
 /*!40000 ALTER TABLE `chargingstation` DISABLE KEYS */;
 /*!40000 ALTER TABLE `chargingstation` ENABLE KEYS */;
 
@@ -111,7 +111,7 @@ CREATE TABLE IF NOT EXISTS `chute` (
   CONSTRAINT `FK_chute_Simul_ID` FOREIGN KEY (`Simul_ID`) REFERENCES `simulation` (`Simul_ID`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
--- 테이블 데이터 lghpdb.chute:~77 rows (대략적) 내보내기
+-- 테이블 데이터 lghpdb.chute:~60 rows (대략적) 내보내기
 /*!40000 ALTER TABLE `chute` DISABLE KEYS */;
 /*!40000 ALTER TABLE `chute` ENABLE KEYS */;
 
@@ -428,6 +428,18 @@ WHERE project_ID = myproject_ID;
 END//
 DELIMITER ;
 
+-- 프로시저 lghpdb.deleteSimulation 구조 내보내기
+DELIMITER //
+CREATE PROCEDURE `deleteSimulation`(
+	IN `mySimul_ID` VARCHAR(50)
+)
+    COMMENT '시뮬레이션 삭제 프로시저'
+BEGIN
+DELETE FROM simulation
+WHERE Simul_ID = mySimul_ID;
+END//
+DELIMITER ;
+
 -- 테이블 lghpdb.grid 구조 내보내기
 CREATE TABLE IF NOT EXISTS `grid` (
   `Grid_ID` char(10) NOT NULL,
@@ -454,7 +466,7 @@ CREATE TABLE IF NOT EXISTS `grid` (
   CONSTRAINT `FK_grid_Simul_ID` FOREIGN KEY (`Simul_ID`) REFERENCES `simulation` (`Simul_ID`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
--- 테이블 데이터 lghpdb.grid:~3 rows (대략적) 내보내기
+-- 테이블 데이터 lghpdb.grid:~1 rows (대략적) 내보내기
 /*!40000 ALTER TABLE `grid` DISABLE KEYS */;
 /*!40000 ALTER TABLE `grid` ENABLE KEYS */;
 
@@ -464,6 +476,7 @@ CREATE TABLE IF NOT EXISTS `project` (
   `Distributor` varchar(50) DEFAULT NULL,
   `Customer` varchar(50) DEFAULT NULL,
   `CenterName` varchar(50) DEFAULT NULL,
+  `running` int(11) DEFAULT 0,
   PRIMARY KEY (`Project_ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='프로젝트 정보를 담은 테이블';
 
@@ -542,17 +555,20 @@ CREATE TABLE IF NOT EXISTS `service` (
 -- 테이블 lghpdb.simulation 구조 내보내기
 CREATE TABLE IF NOT EXISTS `simulation` (
   `Simul_ID` char(10) NOT NULL DEFAULT '',
-  `Project_ID` char(10) DEFAULT NULL,
+  `Grid_ID` char(30) DEFAULT NULL,
   `Simul_Status` int(1) DEFAULT NULL,
   `Duration` time DEFAULT NULL,
   `Remaining` time DEFAULT NULL,
   `Progress` char(50) DEFAULT NULL,
+  `Project_ID` char(10) DEFAULT NULL,
   PRIMARY KEY (`Simul_ID`),
   KEY `FK_simulation_Project_ID` (`Project_ID`),
+  KEY `FK_simulation_Grid_ID` (`Grid_ID`),
+  CONSTRAINT `FK_simulation_Grid_ID` FOREIGN KEY (`Grid_ID`) REFERENCES `grid` (`Grid_ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `FK_simulation_Project_ID` FOREIGN KEY (`Project_ID`) REFERENCES `project` (`Project_ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='시뮬레이션 정보를 담은 테이블';
 
--- 테이블 데이터 lghpdb.simulation:~1 rows (대략적) 내보내기
+-- 테이블 데이터 lghpdb.simulation:~0 rows (대략적) 내보내기
 /*!40000 ALTER TABLE `simulation` DISABLE KEYS */;
 /*!40000 ALTER TABLE `simulation` ENABLE KEYS */;
 
@@ -755,6 +771,54 @@ WHERE Simul_iD = mySimul_ID && Grid_ID = myGrid_ID;
 END//
 DELIMITER ;
 
+-- 프로시저 lghpdb.updateGridtoSimul 구조 내보내기
+DELIMITER //
+CREATE PROCEDURE `updateGridtoSimul`(
+	IN `mySimul_ID` VARCHAR(50),
+	IN `myGrid_ID` VARCHAR(50)
+)
+    COMMENT '시뮬레이션 테이블에 그리드id 연결하는 프로시저'
+BEGIN
+UPDATE simulation
+SET Grid_ID = myGrid_ID
+WHERE Simul_ID = mySimul_ID;
+END//
+DELIMITER ;
+
+-- 프로시저 lghpdb.updateProject 구조 내보내기
+DELIMITER //
+CREATE PROCEDURE `updateProject`(
+	IN `OldProject_ID` VARCHAR(50),
+	IN `NewProject_ID` VARCHAR(50),
+	IN `myDistributor` VARCHAR(50),
+	IN `myCustomer` VARCHAR(50),
+	IN `myCenterName` VARCHAR(50)
+)
+    COMMENT '프로젝트 정보 입력 프로시저'
+BEGIN
+UPDATE project
+SET Project_ID = NewProject_ID,
+Distributor = myDistributor,
+Customer = myCustomer,
+CenterName = myCenterName
+WHERE Project_ID = OldProject_ID;
+END//
+DELIMITER ;
+
+-- 프로시저 lghpdb.updateProjectRunning 구조 내보내기
+DELIMITER //
+CREATE PROCEDURE `updateProjectRunning`(
+	IN `myrunning` INT,
+	IN `myProject_ID` VARCHAR(50)
+)
+    COMMENT '현재 사용중인 프로젝트 상태 업데이트 프로시저'
+BEGIN
+UPDATE project
+SET running = myrunning
+WHERE Project_ID = myProject_ID;
+END//
+DELIMITER ;
+
 -- 프로시저 lghpdb.updateResult 구조 내보내기
 DELIMITER //
 CREATE PROCEDURE `updateResult`(
@@ -903,10 +967,24 @@ DELIMITER ;
 -- 프로시저 lghpdb.updateSimulName 구조 내보내기
 DELIMITER //
 CREATE PROCEDURE `updateSimulName`(
+	IN `OldSimul_ID` VARCHAR(50),
+	IN `NewSimul_ID` VARCHAR(50)
+)
+    COMMENT '시뮬 이름 업데이트 프로시저'
+BEGIN
+UPDATE simulation
+SET Simul_ID = NewSimul_ID
+WHERE Simul_ID = OldSimul_ID;
+END//
+DELIMITER ;
+
+-- 프로시저 lghpdb.updateSimultoGrid 구조 내보내기
+DELIMITER //
+CREATE PROCEDURE `updateSimultoGrid`(
 	IN `myGrid_ID` VARCHAR(50),
 	IN `mySimul_ID` VARCHAR(50)
 )
-    COMMENT '파일가져오기 시 시뮬id 업데이트 프로시저'
+    COMMENT '파일가져오기 시 그리드 테이블에 시뮬id 업데이트 프로시저'
 BEGIN
 UPDATE grid
 SET Grid_ID = myGrid_ID,
@@ -949,7 +1027,7 @@ CREATE TABLE IF NOT EXISTS `workstation` (
   CONSTRAINT `FK_workstation_Simul_ID` FOREIGN KEY (`Simul_ID`) REFERENCES `simulation` (`Simul_ID`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
--- 테이블 데이터 lghpdb.workstation:~70 rows (대략적) 내보내기
+-- 테이블 데이터 lghpdb.workstation:~17 rows (대략적) 내보내기
 /*!40000 ALTER TABLE `workstation` DISABLE KEYS */;
 /*!40000 ALTER TABLE `workstation` ENABLE KEYS */;
 

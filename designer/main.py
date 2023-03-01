@@ -116,7 +116,7 @@ class fifthwindow(QDialog, QWidget, form_fifthwindow):
 
         # 파일 이름으로 db에서 해당 정보 연결
         file_name = QFileInfo(file[0]).baseName()
-        sql = "CALL deleteProject('p1'); CALL createProject('p1', NULL, NULL, NULL); CALL createSimul('p1', 's1'); CALL updateSimulName(%s, 's1');"
+        sql = "CALL deleteProject('p1'); CALL createProject('p1', NULL, NULL, NULL); CALL createSimul('p1', 's1'); CALL updateSimultoGrid(%s, 's1');"
         cur.execute(sql, [str(file_name)])
 
         # self._mainwin=parent
@@ -338,7 +338,7 @@ class sixthwindow(QDialog, QWidget, form_sixthwindow):
                 self.table.item(ix.row(), ix.column()).setBackground(Qt.darkBlue)
                 self.table.item(ix.row(), ix.column()).setText("b")
                 self.table.item(ix.row(), ix.column()).setForeground(Qt.darkBlue)
-                blue = 3
+                blue = 2
             else:
                 self.table.item(ix.row(), ix.column()).setBackground(Qt.darkGray)
                 self.table.item(ix.row(), ix.column()).setText("d")
@@ -966,7 +966,7 @@ class fourthwindow(QDialog, QWidget, form_fourthwindow):
                 self.table.item(ix.row(), ix.column()).setBackground(Qt.darkBlue)
                 self.table.item(ix.row(), ix.column()).setText("b")
                 self.table.item(ix.row(), ix.column()).setForeground(Qt.darkBlue)
-                blue = 3
+                blue = 2
             else:
                 self.table.item(ix.row(), ix.column()).setBackground(Qt.darkGray)
                 self.table.item(ix.row(), ix.column()).setText("d")
