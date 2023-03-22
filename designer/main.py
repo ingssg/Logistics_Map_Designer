@@ -18,14 +18,21 @@ import os
 import sys
 import random
 
-from PyQt5.QtWidgets import *
-from PyQt5 import uic
-from PyQt5.QtCore import pyqtSlot, Qt
-from PyQt5.QtGui import *
-from PyQt5.QtCore import pyqtSlot, Qt
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import QFileInfo
+#pyside
+from PySide6 import *
+from PySide6.QtCore import QFileInfo
+from PySide6.QtGui import Qt
+from PySide6.QtUiTools import loadUiType
+
+#from PyQt5.QtWidgets import *
+#from PyQt5 import uic
+
+#from PyQt5.QtCore import pyqtSlot, Qt
+#from PyQt5.QtGui import *
+#from PyQt5.QtCore import pyqtSlot, Qt
+#from PyQt5.QtWidgets import *
+#from PyQt5.QtGui import *
+#from PyQt5.QtCore import QFileInfo
 import random
 # import pandas as pd
 import xlsxwriter
@@ -34,12 +41,15 @@ import openpyxl
 from PyQt5.uic.properties import QtGui
 
 import pymysql
+from PySide6.QtWidgets import QMainWindow, QDialog, QWidget, QFileDialog, QTableWidget, QVBoxLayout, QGridLayout, \
+    QPushButton, QTableWidgetItem, QApplication
+
 from pymysql.constants import CLIENT
 
 conn = None
 cur = None
 
-conn = pymysql.connect(host='127.0.0.1', port=3307, user='root', password='dormammu', db='lghpdb', charset='utf8',
+conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', password='1290', db='lghpdb', charset='utf8',
                        client_flag=CLIENT.MULTI_STATEMENTS, autocommit=True)
 cur = conn.cursor()
 
@@ -51,23 +61,28 @@ def resource_path(relative_path):
 
 # 1.homePage.ui
 form = resource_path('homePage.ui')  # 여기에 ui파일명 입력
-form_class = uic.loadUiType(form)[0]
+#form_class = uic.loadUiType(form)[0]
+form_class = loadUiType(form)[0]
 # 2.setGrid.ui
 form_second = resource_path('setGrid.ui')
-form_secondwindow = uic.loadUiType(form_second)[0]
+#form_secondwindow = uic.loadUiType(form_second)[0]
+form_secondwindow = loadUiType(form_second)[0]
 # 3.setAttribute.ui
 form_third = resource_path('setAttribute.ui')
-form_thirdwindow = uic.loadUiType(form_third)[0]
+#form_thirdwindow = uic.loadUiType(form_third)[0]
+form_thirdwindow = loadUiType(form_third)[0]
 # 4.createMap.ui
 form_fourth = resource_path('createMap.ui')
-form_fourthwindow = uic.loadUiType(form_fourth)[0]
+#form_fourthwindow = uic.loadUiType(form_fourth)[0]
+form_fourthwindow = loadUiType(form_fourth)[0]
 # 5.viewFile.ui
 form_fifth = resource_path('viewFile.ui')
-form_fifthwindow = uic.loadUiType(form_fifth)[0]
+#form_fifthwindow = uic.loadUiType(form_fifth)[0]
+form_fifthwindow = loadUiType(form_fifth)[0]
 # 6.sixthFile.ui
 form_sixth = resource_path('editFile.ui')
-form_sixthwindow = uic.loadUiType(form_sixth)[0]
-
+#form_sixthwindow = uic.loadUiType(form_sixth)[0]
+form_sixthwindow = loadUiType(form_sixth)[0]
 
 # 1.homePage.ui
 class WindowClass(QMainWindow, form_class):
@@ -75,7 +90,7 @@ class WindowClass(QMainWindow, form_class):
         super().__init__()
         self.setupUi(self)
         self.setWindowTitle("맵 디자인")
-        self.setFixedSize(1000, 800)
+        self.setFixedSize(1000, 550)
         self.createFile.clicked.connect(self.btn_createfile_to_setgrid)  # createFile button 클릭
         self.openFile.clicked.connect(self.btn_fileLoad)  # openFile button 클릭
 
@@ -106,7 +121,7 @@ class fifthwindow(QDialog, QWidget, form_fifthwindow):
         self.setupUi(self)
         self.setWindowTitle("맵 미리보기")
         self.show()  # 파일선택후 창이 앞으로 띄워지게 하기위해 위에 위치
-        self.setFixedSize(1000, 800)
+        self.setFixedSize(1000, 550)
         file = QFileDialog.getOpenFileName(self, '', '', 'xlsx파일 (*.xlsx);; All File(*)')  # !!저장파일 타입 정해지면, 확장자에 추가
         global filename  # 선언, 할당 분리
         filename = file[0]
@@ -116,7 +131,7 @@ class fifthwindow(QDialog, QWidget, form_fifthwindow):
 
         # 파일 이름으로 db에서 해당 정보 연결
         file_name = QFileInfo(file[0]).baseName()
-        sql = "CALL deleteProject('p1'); CALL createProject('p1', NULL, NULL, NULL); CALL createSimul('p1', 's1'); CALL updateSimultoGrid(%s, 's1');"
+        sql = "CALL deleteProject('p1'); CALL createProject('p1', NULL, NULL, NULL); CALL createSimul('p1', 's1'); CALL updateSimulName(%s, 's1');"
         cur.execute(sql, [str(file_name)])
 
         # self._mainwin=parent
@@ -139,6 +154,8 @@ class fifthwindow(QDialog, QWidget, form_fifthwindow):
         file_row = cur.fetchone()
         row = int(file_row[0])
         col = int(file_col[0])
+
+
         self.table.setColumnCount(col)
         self.table.setRowCount(row)
         # 반드시 item 생성해야 셀 색상 변경가능
@@ -193,7 +210,7 @@ class sixthwindow(QDialog, QWidget, form_sixthwindow):
         # self.initUi()
         # self.setupUi(self)
         self.setWindowTitle("맵 수정하기")
-        self.setFixedSize(1000, 800)
+        self.setFixedSize(1000, 550)
         self.table = QTableWidget(parent)
         vbox = QVBoxLayout()
         vbox.addWidget(self.table)
@@ -281,7 +298,7 @@ class sixthwindow(QDialog, QWidget, form_sixthwindow):
         #    for ix in selected.indexes():
         #        print('select row: {0}, col: {1}'.format(ix.row(),ix.column()))
 
-    @pyqtSlot()
+    #@pyqtSlot()
     def btn_charge(self):
         global yellow, red, green, blue, gray, file_grid
         i_charge = file_grid[13]
@@ -313,7 +330,7 @@ class sixthwindow(QDialog, QWidget, form_sixthwindow):
                 self.table.item(ix.row(), ix.column()).setForeground(Qt.darkGray)
                 gray = 1
 
-    @pyqtSlot()
+    #@pyqtSlot()
     def btn_chute(self):
         global yellow, red, green, blue, gray, file_grid
         i_chute = file_grid[14]
@@ -338,14 +355,14 @@ class sixthwindow(QDialog, QWidget, form_sixthwindow):
                 self.table.item(ix.row(), ix.column()).setBackground(Qt.darkBlue)
                 self.table.item(ix.row(), ix.column()).setText("b")
                 self.table.item(ix.row(), ix.column()).setForeground(Qt.darkBlue)
-                blue = 2
+                blue = 3
             else:
                 self.table.item(ix.row(), ix.column()).setBackground(Qt.darkGray)
                 self.table.item(ix.row(), ix.column()).setText("d")
                 self.table.item(ix.row(), ix.column()).setForeground(Qt.darkGray)
                 gray = 2
 
-    @pyqtSlot()
+    #@pyqtSlot()
     def btn_ws(self):
         global yellow, red, green, blue, gray, file_grid
         i_ws = file_grid[15]
@@ -377,7 +394,7 @@ class sixthwindow(QDialog, QWidget, form_sixthwindow):
                 self.table.item(ix.row(), ix.column()).setForeground(Qt.darkGray)
                 gray = 3
 
-    @pyqtSlot()
+    #@pyqtSlot()
     def btn_buffer(self):
         global yellow, red, green, blue, gray, file_grid
         i_buf = file_grid[16]
@@ -409,7 +426,7 @@ class sixthwindow(QDialog, QWidget, form_sixthwindow):
                 self.table.item(ix.row(), ix.column()).setForeground(Qt.darkGray)
                 gray = 4
 
-    @pyqtSlot()
+    #@pyqtSlot()
     def btn_block(self):
         global yellow, red, green, blue, gray, file_grid
         i_blk = file_grid[17]
@@ -441,14 +458,14 @@ class sixthwindow(QDialog, QWidget, form_sixthwindow):
                 self.table.item(ix.row(), ix.column()).setForeground(Qt.darkGray)
                 gray = 5
 
-    @pyqtSlot()
+    #@pyqtSlot()
     def btn_trash(self):
         for ix in self.table.selectedIndexes():
             # print('s r:{0},c:{1}'.format(ix.row(),ix.column()))
             self.table.item(ix.row(), ix.column()).setBackground(Qt.white)
             self.table.item(ix.row(), ix.column()).setText("")
 
-    @pyqtSlot()
+    #@pyqtSlot()
     def btn_clear(self):
         # self.table.clear()
         # 색상 변경 위한 item 추가
@@ -460,7 +477,7 @@ class sixthwindow(QDialog, QWidget, form_sixthwindow):
                 self.table.item(i, j).setText("")
                 # self.table.setItem(i, j, QTableWidgetItem())#
 
-    @pyqtSlot()
+    #@pyqtSlot()
     def btn_addcol(self):
         global temp_count_len
         temp_count_len += 1
@@ -471,7 +488,7 @@ class sixthwindow(QDialog, QWidget, form_sixthwindow):
         for i in range(row_count):
             self.table.setItem(i, col_count, QTableWidgetItem())
 
-    @pyqtSlot()
+    #@pyqtSlot()
     def btn_addrow(self):
         global temp_count_wid
         temp_count_wid += 1
@@ -482,14 +499,14 @@ class sixthwindow(QDialog, QWidget, form_sixthwindow):
         for j in range(col_count):
             self.table.setItem(row_count, j, QTableWidgetItem())
 
-    @pyqtSlot()
+    #@pyqtSlot()
     def btn_delcol(self):
         global temp_count_len
         temp_count_len -= 1
         col_count = self.table.columnCount()
         self.table.removeColumn(col_count - 1)
 
-    @pyqtSlot()
+    #@pyqtSlot()
     def btn_delrow(self):
         global temp_count_wid
         temp_count_wid -= 1
@@ -606,35 +623,35 @@ class secondwindow(QDialog, QWidget, form_secondwindow):
         # self.initUi()
         self.setupUi(self)
         self.setWindowTitle("새 파일 만들기 - 그리드 설정")
-        # self.setFixedSize(1000, 800)
+        self.setFixedSize(1000, 550)
         self.show()
         # self.cb1.activated[str].connect(self.onActivated
-        self.cb1.activated[str].connect(self.selectone)
-        self.cb2.activated[str].connect(self.selecttwo)
-        self.cb3.activated[str].connect(self.selectthr)
-        self.cb4.activated[str].connect(self.selectfour)
+        self.cb1.activated[int].connect(self.selectone)
+        self.cb2.activated[int].connect(self.selecttwo)
+        self.cb3.activated[int].connect(self.selectthr)
+        self.cb4.activated[int].connect(self.selectfour)
         self.gridNext.clicked.connect(self.btn_next_to_setattribute)  # gridNext button 클릭
 
     # def onActivated(self, text):
     #    size_len=text
-    def selectone(self, text):
+    def selectone(self, int):
         global size_len
-        size_len = text
+        size_len = int
         # print(size_len)
 
-    def selecttwo(self, text):
+    def selecttwo(self, int):
         global size_wid
-        size_wid = text
+        size_wid = int
         # print(size_wid)
 
-    def selectthr(self, text):
+    def selectthr(self, int):
         global count_len
-        count_len = text
+        count_len = int
         # print(count_len)
 
-    def selectfour(self, text):
+    def selectfour(self, int):
         global count_wid
-        count_wid = text
+        count_wid = int
         # print(count_wid)
 
     # -gridNext button 함수: setAttribute.ui로 창전환, DB저장
@@ -658,7 +675,7 @@ class thirdwindow(QDialog, QWidget, form_thirdwindow):
         # self.initUi()
         self.setupUi(self)
         self.setWindowTitle("새 파일 만들기 - 셀 설정")
-        # self.setFixedSize(1000, 800)
+        self.setFixedSize(1000, 550)
         # i_charge=0
         global i_charge, i_chute, i_ws, i_buf, i_blk
         i_charge = 0
@@ -666,11 +683,11 @@ class thirdwindow(QDialog, QWidget, form_thirdwindow):
         i_ws = 0
         i_buf = 0
         i_blk = 0
-        self.cb1.activated[str].connect(self.selectone)
-        self.cb2.activated[str].connect(self.selecttwo)
-        self.cb3.activated[str].connect(self.selectthr)
-        self.cb4.activated[str].connect(self.selectfour)
-        self.cb5.activated[str].connect(self.selectfive)
+        self.cb1.activated[int].connect(self.selectone)
+        self.cb2.activated[int].connect(self.selecttwo)
+        self.cb3.activated[int].connect(self.selectthr)
+        self.cb4.activated[int].connect(self.selectfour)
+        self.cb5.activated[int].connect(self.selectfive)
         self.btn1.clicked.connect(self.btn_charge_color)
         self.btn2.clicked.connect(self.btn_chute_color)
         self.btn3.clicked.connect(self.btn_ws_color)
@@ -679,29 +696,29 @@ class thirdwindow(QDialog, QWidget, form_thirdwindow):
         self.attributeNext.clicked.connect(self.btn_next_to_map)  # attributeNext button 클릭
         self.show()
 
-    def selectone(self, text):
+    def selectone(self, int):
         global count_charge
-        count_charge = text
+        count_charge = int
         # print(count_charge)
 
-    def selecttwo(self, text):
+    def selecttwo(self, int):
         global count_chute
-        count_chute = text
+        count_chute = int
         # print(count_chute)
 
-    def selectthr(self, text):
+    def selectthr(self, int):
         global count_ws
-        count_ws = text
+        count_ws = int
         # print(count_ws)
 
-    def selectfour(self, text):
+    def selectfour(self, int):
         global count_buf
-        count_buf = text
+        count_buf = int
         # print(count_buf)
 
-    def selectfive(self, text):
+    def selectfive(self, int):
         global count_blk
-        count_blk = text
+        count_blk = int
         # print(count_blk)
 
     # darkGray, red, magenta, green, yellow, blue
@@ -848,7 +865,7 @@ class fourthwindow(QDialog, QWidget, form_fourthwindow):
         # self.initUi()
         # self.setupUi(self)
         self.setWindowTitle("새 파일 만들기 - 맵 그리기")
-        self.setFixedSize(1000, 900)
+        self.setFixedSize(1000, 550)
         self.table = QTableWidget(parent)
         # self._mainwin=parent
         vbox = QVBoxLayout()
@@ -911,7 +928,7 @@ class fourthwindow(QDialog, QWidget, form_fourthwindow):
     # def on_selection(self,selected):
     #    for ix in selected.indexes():
     #        print('select row: {0}, col: {1}'.format(ix.row(),ix.column()))
-    @pyqtSlot()
+    #@pyqtSlot()
     def btn_charge(self):
         global yellow, red, green, blue, gray
         for ix in self.table.selectedIndexes():
@@ -942,7 +959,7 @@ class fourthwindow(QDialog, QWidget, form_fourthwindow):
                 self.table.item(ix.row(), ix.column()).setForeground(Qt.darkGray)
                 gray = 1
 
-    @pyqtSlot()
+    #@pyqtSlot()
     def btn_chute(self):
         global yellow, red, green, blue, gray
         for ix in self.table.selectedIndexes():
@@ -966,14 +983,14 @@ class fourthwindow(QDialog, QWidget, form_fourthwindow):
                 self.table.item(ix.row(), ix.column()).setBackground(Qt.darkBlue)
                 self.table.item(ix.row(), ix.column()).setText("b")
                 self.table.item(ix.row(), ix.column()).setForeground(Qt.darkBlue)
-                blue = 2
+                blue = 3
             else:
                 self.table.item(ix.row(), ix.column()).setBackground(Qt.darkGray)
                 self.table.item(ix.row(), ix.column()).setText("d")
                 self.table.item(ix.row(), ix.column()).setForeground(Qt.darkGray)
                 gray = 2
 
-    @pyqtSlot()
+    #@pyqtSlot()
     def btn_ws(self):
         global yellow, red, green, blue, gray
         for ix in self.table.selectedIndexes():
@@ -1004,7 +1021,7 @@ class fourthwindow(QDialog, QWidget, form_fourthwindow):
                 self.table.item(ix.row(), ix.column()).setForeground(Qt.darkGray)
                 gray = 3
 
-    @pyqtSlot()
+    #@pyqtSlot()
     def btn_buffer(self):
         global yellow, red, green, blue, gray
         for ix in self.table.selectedIndexes():
@@ -1035,7 +1052,7 @@ class fourthwindow(QDialog, QWidget, form_fourthwindow):
                 self.table.item(ix.row(), ix.column()).setForeground(Qt.darkGray)
                 gray = 4
 
-    @pyqtSlot()
+    #@pyqtSlot()
     def btn_block(self):
         global yellow, red, green, blue, gray
         for ix in self.table.selectedIndexes():
@@ -1066,14 +1083,14 @@ class fourthwindow(QDialog, QWidget, form_fourthwindow):
                 self.table.item(ix.row(), ix.column()).setForeground(Qt.darkGray)
                 gray = 5
 
-    @pyqtSlot()
+    #@pyqtSlot()
     def btn_trash(self):
         for ix in self.table.selectedIndexes():
             # print('s r:{0},c:{1}'.format(ix.row(),ix.column()))
             self.table.item(ix.row(), ix.column()).setBackground(Qt.white)
             self.table.item(ix.row(), ix.column()).setText("")
 
-    @pyqtSlot()
+    #@pyqtSlot()
     def btn_clear(self):
         # self.table.clear()
         # 색상 변경 위한 item 추가
@@ -1085,7 +1102,7 @@ class fourthwindow(QDialog, QWidget, form_fourthwindow):
                 self.table.item(i, j).setText("")
                 # self.table.setItem(i, j, QTableWidgetItem())#
 
-    @pyqtSlot()
+    #@pyqtSlot()
     def btn_addcol(self):
         global temp_count_len
         temp_count_len += 1
@@ -1096,7 +1113,7 @@ class fourthwindow(QDialog, QWidget, form_fourthwindow):
         for i in range(row_count):
             self.table.setItem(i, col_count, QTableWidgetItem())
 
-    @pyqtSlot()
+    #@pyqtSlot()
     def btn_addrow(self):
         global temp_count_wid
         temp_count_wid += 1
@@ -1107,14 +1124,14 @@ class fourthwindow(QDialog, QWidget, form_fourthwindow):
         for j in range(col_count):
             self.table.setItem(row_count, j, QTableWidgetItem())
 
-    @pyqtSlot()
+    #@pyqtSlot()
     def btn_delcol(self):
         global temp_count_len
         temp_count_len -= 1
         col_count = self.table.columnCount()
         self.table.removeColumn(col_count - 1)
 
-    @pyqtSlot()
+    #@pyqtSlot()
     def btn_delrow(self):
         global temp_count_wid
         temp_count_wid -= 1
@@ -1212,7 +1229,7 @@ class fourthwindow(QDialog, QWidget, form_fourthwindow):
         file_name = QFileInfo(file[0]).baseName()
         sql = "CALL updateGridName('s1', %s);"
         cur.execute(sql, [str(file_name)])
-        
+
         # 셀 및 특수 셀 ID에 파일 이름을 연결짓기
         for i in range(1, cnum):
             cname = str(file_name) + '_c' + str(i).zfill(4)
@@ -1234,19 +1251,19 @@ class fourthwindow(QDialog, QWidget, form_fourthwindow):
             BUFname = str(file_name) + '_BUF' + str(i).zfill(4)
             oldBUFname = 'BUF' + str(i).zfill(4)
             cur.execute("CALL updateBufferName(%s, %s)", [oldBUFname, BUFname])
-            
-        cur.execute("CALL deleteProject('p1');")    
+
+        cur.execute("CALL deleteProject('p1');")
         workbook.close()
         self.close()
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    app.setStyle(QStyleFactory.create('Fusion'))
+    #app.setStyle(QStyleFactory.create('Fusion'))
     myWindow = WindowClass()
     # fwin=fourthwindow()
     myWindow.show()
     # fwin.show()
-    app.exec_()
+    app.exec()
 
 conn.close()
