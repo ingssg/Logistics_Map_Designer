@@ -324,7 +324,7 @@ class sixthwindow(QDialog, QWidget, form_sixthwindow):
         self.table.setStyleSheet("background-color:white")
         self.setStyleSheet("background-color:rgb(1,35,38);")
         save.setStyleSheet(
-            "color: rgb(82,242,226);background-color: rgb(86,140,140);border-radius: 10px;border: 2px solid rgb(82,242,226);")
+            "color: rgb(82,242,226);background-color: rgb(86,140,140);border: 2px solid rgb(82,242,226);border-radius: 10px;")
         save.setFont(QFont('나눔고딕 ExtraBold', 13))
         save.setMinimumSize(30, 30)
         charge.setStyleSheet(
