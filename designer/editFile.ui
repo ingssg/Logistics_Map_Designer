@@ -10,6 +10,12 @@
     <height>300</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <family>나눔고딕 ExtraBold</family>
+    <pointsize>10</pointsize>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
