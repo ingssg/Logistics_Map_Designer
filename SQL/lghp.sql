@@ -19,7 +19,7 @@ USE `lghpdb`;
 
 -- 테이블 lghpdb.buffer 구조 내보내기
 CREATE TABLE IF NOT EXISTS `buffer` (
-  `Buffer_ID` char(30) NOT NULL,
+  `Buffer_ID` char(50) NOT NULL,
   `Grid_ID` char(10) DEFAULT NULL,
   `Cell_ID` char(30) DEFAULT NULL,
   `LocationX` int(11) DEFAULT NULL,
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS `buffer` (
   CONSTRAINT `FK__buffer_Simul_ID` FOREIGN KEY (`Simul_ID`) REFERENCES `simulation` (`Simul_ID`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
--- 테이블 데이터 lghpdb.buffer:~36 rows (대략적) 내보내기
+-- 테이블 데이터 lghpdb.buffer:~7 rows (대략적) 내보내기
 /*!40000 ALTER TABLE `buffer` DISABLE KEYS */;
 /*!40000 ALTER TABLE `buffer` ENABLE KEYS */;
 
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS `cell` (
   CONSTRAINT `FK_cell_Simul_ID` FOREIGN KEY (`Simul_ID`) REFERENCES `simulation` (`Simul_ID`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
--- 테이블 데이터 lghpdb.cell:~195 rows (대략적) 내보내기
+-- 테이블 데이터 lghpdb.cell:~93 rows (대략적) 내보내기
 /*!40000 ALTER TABLE `cell` DISABLE KEYS */;
 /*!40000 ALTER TABLE `cell` ENABLE KEYS */;
 
@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS `chargingstation` (
   CONSTRAINT `FK_chargingstation_Simul_ID` FOREIGN KEY (`Simul_ID`) REFERENCES `simulation` (`Simul_ID`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
--- 테이블 데이터 lghpdb.chargingstation:~12 rows (대략적) 내보내기
+-- 테이블 데이터 lghpdb.chargingstation:~8 rows (대략적) 내보내기
 /*!40000 ALTER TABLE `chargingstation` DISABLE KEYS */;
 /*!40000 ALTER TABLE `chargingstation` ENABLE KEYS */;
 
@@ -111,7 +111,7 @@ CREATE TABLE IF NOT EXISTS `chute` (
   CONSTRAINT `FK_chute_Simul_ID` FOREIGN KEY (`Simul_ID`) REFERENCES `simulation` (`Simul_ID`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
--- 테이블 데이터 lghpdb.chute:~60 rows (대략적) 내보내기
+-- 테이블 데이터 lghpdb.chute:~10 rows (대략적) 내보내기
 /*!40000 ALTER TABLE `chute` DISABLE KEYS */;
 /*!40000 ALTER TABLE `chute` ENABLE KEYS */;
 
@@ -119,7 +119,6 @@ CREATE TABLE IF NOT EXISTS `chute` (
 DELIMITER //
 CREATE PROCEDURE `createBuffer`(
 	IN `myGrid_ID` VARCHAR(50),
-	IN `mySimul_ID` VARCHAR(50),
 	IN `myCell_ID` VARCHAR(50),
 	IN `myBuffer_ID` VARCHAR(50)
 )
@@ -135,8 +134,8 @@ SELECT cell.LocationY INTO Y
 FROM cell
 WHERE cell.Cell_ID = myCell_ID;
 
-INSERT INTO buffer(Grid_ID, Simul_ID, Cell_ID, Buffer_ID, LocationX, LocationY)
-VALUES(myGrid_ID, mySimul_ID, myCell_ID, myBuffer_ID, X, Y);
+INSERT INTO buffer(Grid_ID, Cell_ID, Buffer_ID, LocationX, LocationY)
+VALUES(myGrid_ID, myCell_ID, myBuffer_ID, X, Y);
 
 END//
 DELIMITER ;
@@ -144,7 +143,6 @@ DELIMITER ;
 -- 프로시저 lghpdb.createCell 구조 내보내기
 DELIMITER //
 CREATE PROCEDURE `createCell`(
-	IN `mySimul_ID` VARCHAR(50),
 	IN `myGrid_ID` VARCHAR(50),
 	IN `myCell_ID` VARCHAR(50),
 	IN `myLocationX` INT,
@@ -152,8 +150,8 @@ CREATE PROCEDURE `createCell`(
 )
     COMMENT '1개의 셀 정보 생성 프로시저'
 BEGIN
-INSERT INTO cell(Simul_ID, Grid_id, Cell_ID, LocationX, LocationY)
-VALUES(mySimul_ID, myGrid_ID, myCell_ID, myLocationX, myLocationY);
+INSERT INTO cell(Grid_id, Cell_ID, LocationX, LocationY)
+VALUES(myGrid_ID, myCell_ID, myLocationX, myLocationY);
 END//
 DELIMITER ;
 
@@ -161,7 +159,6 @@ DELIMITER ;
 DELIMITER //
 CREATE PROCEDURE `createChute`(
 	IN `myGrid_ID` VARCHAR(50),
-	IN `mySimul_ID` VARCHAR(50),
 	IN `myCell_ID` VARCHAR(50),
 	IN `myChute_ID` VARCHAR(50),
 	IN `myRobotDirection` INT,
@@ -179,8 +176,8 @@ SELECT cell.LocationY INTO Y
 FROM cell
 WHERE cell.Cell_ID = myCell_ID;
 
-INSERT INTO Chute(Grid_ID, Simul_ID, Cell_ID, Chute_ID, RobotDirection, LocationX, LocationY, MaxCnt)
-VALUES(myGrid_ID, mySimul_ID, myCell_ID, myChute_ID, myRobotDirection, X, Y, myMaxCnt);
+INSERT INTO Chute(Grid_ID, Cell_ID, Chute_ID, RobotDirection, LocationX, LocationY, MaxCnt)
+VALUES(myGrid_ID, myCell_ID, myChute_ID, myRobotDirection, X, Y, myMaxCnt);
 
 END//
 DELIMITER ;
@@ -189,7 +186,6 @@ DELIMITER ;
 DELIMITER //
 CREATE PROCEDURE `createCS`(
 	IN `myGrid_ID` VARCHAR(50),
-	IN `mySimul_ID` VARCHAR(50),
 	IN `myCell_ID` VARCHAR(50),
 	IN `myCS_ID` VARCHAR(50),
 	IN `myRobotDirection` INT
@@ -201,13 +197,13 @@ DECLARE X INT;
 DECLARE Y INT;
 SELECT cell.LocationX INTO X
 FROM cell
-WHERE cell.Cell_ID = myCell_ID && Simul_ID = mySimul_ID;
+WHERE cell.Cell_ID = myCell_ID;
 SELECT cell.LocationY INTO Y
 FROM cell
-WHERE cell.Cell_ID = myCell_ID && Simul_ID = mySimul_ID;
+WHERE cell.Cell_ID = myCell_ID;
 
-INSERT INTO chargingstation(Grid_ID, Simul_ID, Cell_ID, CS_ID, RobotDirection, LocationX, LocationY)
-VALUES(myGrid_ID, mySimul_ID, myCell_ID, myCS_ID, myRobotDirection, X, Y);
+INSERT INTO chargingstation(Grid_ID, Cell_ID, CS_ID, RobotDirection, LocationX, LocationY)
+VALUES(myGrid_ID, myCell_ID, myCS_ID, myRobotDirection, X, Y);
 
 END//
 DELIMITER ;
@@ -215,21 +211,19 @@ DELIMITER ;
 -- 프로시저 lghpdb.createGrid 구조 내보내기
 DELIMITER //
 CREATE PROCEDURE `createGrid`(
-	IN `mySimul_ID` VARCHAR(50),
 	IN `myGrid_ID` VARCHAR(50),
 	IN `myGridSizeX` INT,
 	IN `myGridSizeY` INT,
 	IN `myCellWidth` INT,
 	IN `myCellHeight` INT
 )
-    COMMENT '그리드 생성 프로시저'
 BEGIN
-INSERT INTO grid(Simul_ID, Grid_ID, GridSizeX, GridSizeY, CellWidth, CellHeight)
-VALUES(mySimul_ID, myGrid_ID, myGridSizeX, myGridSizeY, myCellWidth, myCellHeight);
+INSERT INTO grid(Grid_ID, GridSizeX, GridSizeY, CellWidth, CellHeight)
+VALUES(myGrid_ID, myGridSizeX, myGridSizeY, myCellWidth, myCellHeight);
 
 UPDATE grid
 SET TotalCellCnt = myGridSizeX * myGridSizeY
-WHERE Simul_ID = mySimul_ID && Grid_ID = myGrid_ID;
+WHERE Grid_ID = myGrid_ID;
 END//
 DELIMITER ;
 
@@ -314,7 +308,6 @@ DELIMITER ;
 -- 프로시저 lghpdb.createService 구조 내보내기
 DELIMITER //
 CREATE PROCEDURE `createService`(
-	IN `mySimul_ID` VARCHAR(50),
 	IN `myCell_ID` VARCHAR(50),
 	IN `myService_ID` VARCHAR(50)
 )
@@ -330,8 +323,8 @@ SELECT cell.LocationY INTO Y
 FROM cell
 WHERE cell.Cell_ID = myCell_ID;
 
-INSERT INTO service(Simul_ID, Cell_ID, Service_ID, LocationX, LocationY)
-VALUES(mySimul_ID, myCell_ID, myService_ID, X, Y);
+INSERT INTO service(Cell_ID, Service_ID, LocationX, LocationY)
+VALUES(myCell_ID, myService_ID, X, Y);
 
 END//
 DELIMITER ;
@@ -353,7 +346,6 @@ DELIMITER ;
 DELIMITER //
 CREATE PROCEDURE `createWS`(
 	IN `myGrid_ID` VARCHAR(50),
-	IN `mySimul_ID` VARCHAR(50),
 	IN `myCell_ID` VARCHAR(50),
 	IN `myWS_ID` VARCHAR(50),
 	IN `myRobotDirection` INT
@@ -370,8 +362,8 @@ SELECT cell.LocationY INTO Y
 FROM cell
 WHERE cell.Cell_ID = myCell_ID;
 
-INSERT INTO workstation(Grid_ID, Simul_ID, Cell_ID, WS_ID, RobotDirection, LocationX, LocationY)
-VALUES(myGrid_ID, mySimul_ID, myCell_ID, myWS_ID, myRobotDirection, X, Y);
+INSERT INTO workstation(Grid_ID, Cell_ID, WS_ID, RobotDirection, LocationX, LocationY)
+VALUES(myGrid_ID, myCell_ID, myWS_ID, myRobotDirection, X, Y);
 
 END//
 DELIMITER ;
@@ -466,7 +458,7 @@ CREATE TABLE IF NOT EXISTS `grid` (
   CONSTRAINT `FK_grid_Simul_ID` FOREIGN KEY (`Simul_ID`) REFERENCES `simulation` (`Simul_ID`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
--- 테이블 데이터 lghpdb.grid:~1 rows (대략적) 내보내기
+-- 테이블 데이터 lghpdb.grid:~3 rows (대략적) 내보내기
 /*!40000 ALTER TABLE `grid` DISABLE KEYS */;
 /*!40000 ALTER TABLE `grid` ENABLE KEYS */;
 
@@ -480,7 +472,7 @@ CREATE TABLE IF NOT EXISTS `project` (
   PRIMARY KEY (`Project_ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='프로젝트 정보를 담은 테이블';
 
--- 테이블 데이터 lghpdb.project:~1 rows (대략적) 내보내기
+-- 테이블 데이터 lghpdb.project:~0 rows (대략적) 내보내기
 /*!40000 ALTER TABLE `project` DISABLE KEYS */;
 /*!40000 ALTER TABLE `project` ENABLE KEYS */;
 
@@ -589,7 +581,6 @@ DELIMITER ;
 -- 프로시저 lghpdb.updateCellCnt 구조 내보내기
 DELIMITER //
 CREATE PROCEDURE `updateCellCnt`(
-	IN `mySimul_ID` VARCHAR(50),
 	IN `myGrid_ID` VARCHAR(50),
 	IN `myCS_Cnt` INT,
 	IN `myChute_Cnt` INT,
@@ -606,14 +597,13 @@ Chute_Cnt = myChute_Cnt,
 Block_Cnt = myBlock_Cnt,
 Buffer_Cnt = myBuffer_Cnt,
 Service_Cnt = 0
-WHERE Grid_ID = myGrid_ID && Simul_ID = mySimul_ID;
+WHERE Grid_ID = myGrid_ID;
 END//
 DELIMITER ;
 
 -- 프로시저 lghpdb.updateCellDirection 구조 내보내기
 DELIMITER //
 CREATE PROCEDURE `updateCellDirection`(
-	IN `mySimul_ID` VARCHAR(50),
 	IN `myCell_ID` VARCHAR(50),
 	IN `myND` INT,
 	IN `mySD` INT,
@@ -627,7 +617,7 @@ SET NorthDirection = myND,
 SouthDirection = mySD,
 WestDirection = myWD,
 EastDirection = myED
-WHERE Cell_ID = myCell_ID && Simul_ID = mySimul_ID;
+WHERE Cell_ID = myCell_ID;
 END//
 DELIMITER ;
 
@@ -648,7 +638,7 @@ DELIMITER ;
 -- 프로시저 lghpdb.updateCellStatus 구조 내보내기
 DELIMITER //
 CREATE PROCEDURE `updateCellStatus`(
-	IN `mySimul_ID` VARCHAR(50),
+	IN `myGrid_ID` VARCHAR(50),
 	IN `myCell_ID` VARCHAR(50),
 	IN `myStatus` INT
 )
@@ -661,28 +651,28 @@ SET cell_color =
 case  
 	when (myStatus = 1) then (SELECT G.CS_Color 
 										FROM grid as G
-										WHERE G.Simul_ID = mySimul_ID)
+										WHERE G.Grid_ID = myGrid_ID)
 	when (myStatus = 2) then (SELECT G.Chute_Color 
 										FROM grid as G
-										WHERE G.Simul_ID = mySimul_ID)
+										WHERE G.Grid_ID = myGrid_ID)
 	when (myStatus = 3) then (SELECT G.WS_Color 
 										FROM grid AS G
-										WHERE G.Simul_ID = mySimul_ID)
+										WHERE G.Grid_ID = myGrid_ID)
 	when (myStatus = 4) then (SELECT G.Buffer_Color 
 										FROM grid as G
-										WHERE G.Simul_ID = mySimul_ID)
+										WHERE G.Grid_ID = myGrid_ID)
 	when (myStatus = 5) then (SELECT G.Block_Color 
 										FROM grid as G
-										WHERE G.Simul_ID = mySimul_ID)	
+										WHERE G.Grid_ID = myGrid_ID)	
 	when (myStatus = 7) then (SELECT G.Service_Color 
 										FROM grid as G
-										WHERE G.Simul_ID = mySimul_ID)	
+										WHERE G.Grid_ID = myGrid_ID)	
 END; 
 
 UPDATE cell
 SET Color = cell_color,
 CellStatus = myStatus
-WHERE Cell_ID = myCell_ID && Simul_ID = mySimul_ID;
+WHERE Cell_ID = myCell_ID;
 END//
 DELIMITER ;
 
@@ -717,7 +707,6 @@ DELIMITER ;
 -- 프로시저 lghpdb.updateGridColor 구조 내보내기
 DELIMITER //
 CREATE PROCEDURE `updateGridColor`(
-	IN `mySimul_ID` VARCHAR(50),
 	IN `myGrid_ID` VARCHAR(50),
 	IN `myCS_Color` INT,
 	IN `myChute_Color` INT,
@@ -734,7 +723,7 @@ Chute_Color = myChute_Color,
 Block_Color = myBlock_Color,
 Buffer_Color = myBuffer_Color,
 Service_Color = 9
-WHERE Grid_ID = myGrid_ID && Simul_ID = mySimul_ID;
+WHERE Grid_ID = myGrid_ID;
 END//
 DELIMITER ;
 
@@ -1027,7 +1016,7 @@ CREATE TABLE IF NOT EXISTS `workstation` (
   CONSTRAINT `FK_workstation_Simul_ID` FOREIGN KEY (`Simul_ID`) REFERENCES `simulation` (`Simul_ID`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
--- 테이블 데이터 lghpdb.workstation:~17 rows (대략적) 내보내기
+-- 테이블 데이터 lghpdb.workstation:~8 rows (대략적) 내보내기
 /*!40000 ALTER TABLE `workstation` DISABLE KEYS */;
 /*!40000 ALTER TABLE `workstation` ENABLE KEYS */;
 
